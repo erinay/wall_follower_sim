@@ -6,6 +6,7 @@ import rospy
 from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
+from rospy_tutorials.msg import Floats
 
 class WallFollower:
     # Import ROS parameters from the "params.yaml" file.
@@ -20,8 +21,8 @@ class WallFollower:
     def __init__(self):
 
 
-        self.pub = rospy.Subscriber('laser_data', LaserScan, self.callback_laser)
-        self.cmd = rospy.Publisher('drive', AckermannDriveStamped, queue_size=10)
+        rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.callback_laser)
+        self.cmd = rospy.Publisher(self.DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
 
         # TODO:
         # Initialize your publishers and
@@ -32,25 +33,26 @@ class WallFollower:
 
     # TODO:
     # Write your callback functions here.
-    def callback_laser(LaserScan):
-        data = LaserScan.ranges
+    def callback_laser(self, LaserScan):
+        data = np.array(LaserScan.ranges)
         rospy.loginfo((LaserScan.angle_min, LaserScan.angle_max, LaserScan.angle_increment))
         # self.pub = rospy.Publisher(data, LaserData)
-        rospy.loginfo(datas)
-
+        # rospy.loginfo(data)
+        
         # We want to divide up the laserscan data
+        pub_f = rospy.Publisher('/front', numpy_msg(Floats), queue_size=10)
+        pub_f.publish(data)
         #pub = rospy.Publisher('laser_data/left')
-        #pub = rospy.Publisher('laser_data/front')
         #pub = rospy.Publisher('laser_data/right')
-    def steering():
+    # def steering(self):
         # rate = rospy.Rate(10)
 
         # while not rospy.is_shutdown():
         steer_cmd = AckermannDriveStamped()
         steer_cmd.header.stamp = rospy.Time.now()
-        steer_cmd.frame_id = 'base_link'
-        steer_cmd.steering_angle = 0
-        steer_cmd.speed = VELOCITY
+        steer_cmd.header.frame_id = 'base_link'
+        steer_cmd.drive.steering_angle = 0.2
+        steer_cmd.drive.speed = self.VELOCITY
         rospy.loginfo(steer_cmd)
         self.cmd.publish(steer_cmd)
         # rate.sleep
